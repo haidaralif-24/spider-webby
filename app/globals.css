@@ -1,0 +1,575 @@
+@import "tailwindcss";
+
+/*
+ * SpiderWeb design tokens.
+ *
+ * Source of truth: docs/SpiderWeb-Technical-Brief.md §1 (palette) + §5.10 (fields),
+ * and AGENTS.md §4.8 / §4.9.
+ *
+ * Never hardcode a hex value in a component. Use the generated utility
+ * (bg-science-green, text-deep-charcoal, border-web-gray, ...) so a palette
+ * change stays a one-file edit.
+ *
+ * RULE (AGENTS.md §4.8): all three field colours sit at ~2.5–3.2:1 against white.
+ * Use them as FILLS, BORDERS and CHIPS only — never as text colour on a light
+ * background. Text on top of a field colour is always Deep Charcoal.
+ */
+@theme {
+  /* ---- Raw brand palette (locked) ---- */
+  --color-science-green: #4caf50;
+  --color-curious-blue: #42a5f5;
+  --color-discovery-yellow: #ffd54f;
+  --color-energy-orange: #ff9f43;
+  --color-fun-purple: #8e7cff;
+  --color-cloud-white: #f8fbf7;
+  --color-lab-mist: #e8f5e9;
+  --color-web-gray: #808ec5;
+  --color-deep-charcoal: #263238;
+
+  /* ---- Semantic roles (AGENTS.md §4.8) ---- */
+  --color-page: var(--color-cloud-white);
+  --color-section: var(--color-lab-mist);
+  --color-border: var(--color-web-gray);
+  --color-body: var(--color-deep-charcoal);
+  --color-primary: var(--color-science-green);
+  --color-accent: var(--color-discovery-yellow);
+  --color-cta: var(--color-energy-orange);
+
+  /* ---- Field colours (brief §5.10) ----
+   * Provisional: reversible until the P0 tokens lock. Referenced by slug, so a
+   * change here is a one-line edit and never a component change.
+   * Every field ALSO needs a distinct icon silhouette — colour must never be the
+   * only signal (AGENTS.md §4.9, ~1 in 12 boys has a colour vision deficiency). */
+  --color-field-fisika: var(--color-curious-blue);
+  --color-field-kimia: var(--color-fun-purple);
+  --color-field-biologi: var(--color-science-green);
+
+  /* ---- Typography (brief §5.8) ----
+   * Body text is a system stack: zero webfont weight on a phone on mobile data.
+   * `--font-display` is the slot for the chunky rounded heading face. It is
+   * deliberately not chosen yet — when it is, self-host it via next/font,
+   * subset it, use display:swap, and apply it to headings only. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-sans);
+
+  /* ---- Accessibility (AGENTS.md §4.9) ----
+   * Minimum touch target. 44px is the floor, not a suggestion. */
+  --spacing-touch: 44px;
+
+  /* ---- Playful depth ----
+   * The "sticker" look: a hard charcoal offset instead of a soft blur. Kept as
+   * a token so the whole site's shadow is one edit, never a find-and-replace. */
+  --shadow-playful: 8px 8px 0 0 var(--color-deep-charcoal);
+  --shadow-playful-sm: 4px 4px 0 0 var(--color-deep-charcoal);
+  --shadow-playful-lg: 13px 13px 0 0 var(--color-deep-charcoal);
+
+  /* ---- Motion ----
+   * CSS only. No animation library (AGENTS.md §2) and no client JS on a public
+   * content page (§4.5). Everything here is switched off wholesale under
+   * `prefers-reduced-motion` below.
+   *
+   * The house easing is `--ease-soft`, an ease-out cubic: it decelerates into
+   * rest instead of stopping dead, which is what separates a settle from a
+   * snap. Anything springy (the card fan, the bounce entrance) uses
+   * `--ease-glide`, an ease-in-out that also slows through the turning point so
+   * a direction change never reads as a jolt. */
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-glide: cubic-bezier(0.45, 0, 0.55, 1);
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-bob: bob 5s ease-in-out infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-14px);
+    }
+  }
+
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-6deg);
+    }
+    50% {
+      transform: translateY(-6px) rotate(6deg);
+    }
+  }
+}
+
+@layer base {
+  html {
+    /* The palette is locked and light. Never let the OS dark theme repaint it —
+     * Cloud White is the page background in the brief, not a theme preference. */
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+  }
+
+  /* No hover-only affordances anywhere: there is no hover on a phone. */
+  :focus-visible {
+    outline: 3px solid var(--color-deep-charcoal);
+    outline-offset: 2px;
+  }
+
+  /* Anchor links glide between sections instead of teleporting. Inside the
+   * no-preference guard because a long smooth scroll is exactly the kind of
+   * motion someone who asked for less motion is asking to be spared. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Lets `block-size: auto` be interpolated, which is the only way to animate
+   * an accordion whose open height is unknown. Declared globally because the
+   * property has no per-element form; it only has an effect where a transition
+   * on an `auto` size actually exists. */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  /* Motion is decoration, never information. Anyone who has asked their OS for
+   * less of it gets none of it (AGENTS.md §4.9). The delay is zeroed too, so a
+   * staggered entrance does not leave a 300ms hole where the content should be. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==================================================================== *
+ * Motion
+ *
+ * All of it is CSS. A public content page ships zero client JS
+ * (AGENTS.md §4.5), so there is no animation library and no scripted
+ * entrance — just keyframes, delays and scroll timelines. Nothing here
+ * is load-bearing: with every animation stripped, the page renders
+ * exactly the same, just still.
+ *
+ * Every entrance keyframe ends on the element's natural style and uses
+ * `backwards` fill rather than `both`. That matters: `both` would keep
+ * the animation's final `transform` winning over the property forever,
+ * which would silently kill every `hover:` transform on the same element.
+ * ==================================================================== */
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reveal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes blob-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* The BounceCards entrance: rise, overshoot, settle, rest. A CSS equivalent of
+ * GSAP's `elastic.out(1, 0.8)` — the springiness comes from the keyframe offsets
+ * rather than an easing curve.
+ *
+ * The overshoot is deliberately small (-8px / 1.02 rather than -14px / 1.05) and
+ * the segments are eased in *and* out, so the motion slows through the apex the
+ * way a real bounce does. A bigger overshoot with an ease-out curve reads as a
+ * snap; this reads as a settle.
+ *
+ * Opacity finishes at 30% while the motion runs to 100%: the card is solid
+ * almost immediately, so the rest of the time is pure movement. */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(44px) scale(0.94);
+  }
+  30% {
+    opacity: 1;
+  }
+  62% {
+    transform: translateY(-8px) scale(1.02);
+  }
+  84% {
+    transform: translateY(3px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.4) rotate(25deg);
+  }
+}
+
+@keyframes tube-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@layer components {
+  /* Hero dot-grid. Decorative background texture drawn in CSS — no image
+   * request, no raster weight (AGENTS.md §4.4, brief §5.8). Colour comes from
+   * the token, never a literal. */
+  .hero-grid {
+    background-image: radial-gradient(
+      var(--color-web-gray) 1.5px,
+      transparent 1.5px
+    );
+    background-size: 22px 22px;
+  }
+
+  /* ---- Entrance -----------------------------------------------------
+   * Stagger comes from `--reveal-delay`, set per element at the call site
+   * (`[--reveal-delay:90ms]`). Delays are short on purpose: a kid who taps
+   * through before the headline has landed has been failed by the animation. */
+  .reveal {
+    animation: reveal-up 560ms var(--ease-soft) backwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal-pop {
+    animation: reveal-pop 640ms var(--ease-soft) backwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  .blob-in {
+    animation: blob-in 900ms var(--ease-soft) backwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  /* The BounceCards entrance, timed rather than scroll-driven.
+   *
+   * This started as a scroll timeline, and that was wrong for this page. A
+   * scroll timeline freezes the animation at whatever progress the current
+   * scroll offset maps to, so a card whose range had not been reached yet sat
+   * at partial opacity — three cards in one row visibly different from each
+   * other, and stuck that way until you happened to scroll further. This page
+   * is barely a viewport and a half tall, so that state was easy to land in.
+   * A timed animation always finishes.
+   *
+   * `--reveal-delay` is the stagger, same as ReactBits' `animationStagger`. */
+  .bounce-in {
+    animation: bounce-in 700ms var(--ease-glide) backwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  /* ---- The playful button ------------------------------------------
+   * A sticker that lifts under the cursor and slams flat under a finger.
+   *
+   * The base shadow lives here rather than as a `shadow-*` utility, because
+   * Tailwind's utilities layer outranks the components layer and would win
+   * the `:hover` box-shadow. */
+  .btn-playful {
+    box-shadow: 4px 4px 0 0 var(--color-deep-charcoal);
+    transition:
+      transform 200ms var(--ease-soft),
+      box-shadow 200ms var(--ease-soft);
+  }
+
+  /* Hover is a pure enhancement, never the only way to reach a state — every
+   * one of these is also reachable by `:active`, because there is no hover on
+   * a phone (AGENTS.md §4.9). The media query keeps touch devices from
+   * latching a hover state after a tap. */
+  @media (hover: hover) {
+    .btn-playful:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0 0 var(--color-deep-charcoal);
+    }
+  }
+
+  /* A press is still shorter than a hover, so touch feedback does not feel
+   * mushy — but it settles over 200ms rather than slamming, and the offset is
+   * 2px instead of 4px, so nothing jolts. */
+  .btn-playful:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 var(--color-deep-charcoal);
+    transition-duration: 140ms;
+  }
+
+  /* ---- The playful heading box -------------------------------------
+   * The `.btn-playful` treatment applied to a heading: a bordered, hard-shadowed
+   * sticker that lifts under the cursor. The class owns the shadow and the
+   * interaction; the call site supplies border, fill, radius and padding — the
+   * same split the buttons use.
+   *
+   * `width: fit-content` is what makes it a sticker rather than a full-width
+   * bar: the box hugs the words. Shrink-to-fit still wraps at the container
+   * width, so a long headline on a phone grows taller instead of overflowing.
+   * (Block + fit-content rather than `inline-block`, which would sit on a line
+   * box and add descender space under the box.)
+   *
+   * Headings are not interactive, so the hover is pure delight rather than a
+   * promise — nothing is reachable *only* by hovering, and deleting this whole
+   * block loses no information. */
+  .heading-box {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    box-shadow: 4px 4px 0 0 var(--color-deep-charcoal);
+    transition:
+      transform 200ms var(--ease-soft),
+      box-shadow 200ms var(--ease-soft);
+  }
+
+  @media (hover: hover) {
+    .heading-box:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0 0 var(--color-deep-charcoal);
+    }
+  }
+
+  .heading-box:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 var(--color-deep-charcoal);
+    transition-duration: 140ms;
+  }
+
+  /* ---- Field cards --------------------------------------------------
+   * The cards are native `<details>`, which is what gives tap-to-open,
+   * keyboard support and correct screen-reader semantics with zero JS
+   * (AGENTS.md §4.5). A hover-only panel would be unopenable on a phone and a
+   * checkbox hack would announce as a checkbox — both worse.
+   *
+   * The interaction is the BounceCards one, done in CSS: the cards rest at a
+   * slight fan (each sets its own `--tilt`), and focusing one straightens it,
+   * lifts it and pushes its siblings back along their own axis. `:has()` is
+   * what makes "react to a sibling's hover" possible with no JS and no
+   * wrapper element — supported in every current browser.
+   *
+   * The shadow is declared here rather than as a `shadow-*` utility because
+   * Tailwind's utilities layer outranks the components layer and would win the
+   * `:hover` box-shadow. */
+  .field-card {
+    position: relative;
+    transform: rotate(var(--tilt, 0deg));
+    box-shadow: 4px 4px 0 0 var(--color-deep-charcoal);
+    /* Slow on purpose: the fan-out moves three cards at once and the accordion
+     * below it moves the rest of the page, so the eye needs the extra time. */
+    transition:
+      transform 400ms var(--ease-glide),
+      box-shadow 400ms var(--ease-glide),
+      opacity 280ms var(--ease-soft);
+  }
+
+  /* ---- Accordion height ---------------------------------------------
+   * `<details>` has no built-in open/close transition, so expanding a card used
+   * to push every section below it down in a single frame — the page jumped and
+   * "Cara pakai" teleported.
+   *
+   * `::details-content` is the box the browser shows and hides. Giving it a
+   * `block-size` and transitioning that, plus `content-visibility` as an
+   * `allow-discrete` property so it flips at the halfway point rather than
+   * instantly, turns the jump into a settle.
+   *
+   * Strictly an enhancement. Without `interpolate-size` support, `block-size:
+   * auto` is not interpolatable and the browser snaps exactly as it did before
+   * — no regression, just no smoothing. Browsers with no `::details-content`
+   * support ignore the whole block and keep the native behaviour. */
+  .field-card::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 320ms var(--ease-glide),
+      content-visibility 320ms allow-discrete;
+  }
+
+  .field-card[open]::details-content {
+    block-size: auto;
+  }
+
+  /* The panel fades and drops in behind the opening height, so the reveal
+   * reads as content arriving rather than as a box being unclipped.
+   *
+   * This targets the panel element itself, not a child of `::details-content`.
+   * A pseudo-element cannot be followed by a combinator — `::details-content > *`
+   * is a parse error, not a selector that matches nothing — and the panel is in
+   * the light DOM anyway, so a descendant selector on `[open]` reaches it. */
+  .field-panel {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+      opacity 220ms var(--ease-soft),
+      transform 320ms var(--ease-glide);
+  }
+
+  .field-card[open] .field-panel {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (hover: hover) {
+    /* The focused card straightens and steps forward. */
+    .field-card:hover {
+      z-index: 10;
+      transform: rotate(0deg) translateY(-8px) scale(1.02);
+      box-shadow: 8px 8px 0 0 var(--color-deep-charcoal);
+    }
+
+    /* Everything else leans out along its own tilt and steps back. */
+    .field-list:has(.field-card:hover) .field-card:not(:hover) {
+      transform: rotate(calc(var(--tilt, 0deg) * 1.6)) translateY(5px)
+        scale(0.97);
+      opacity: 0.88;
+    }
+
+    /* Hover also opens the card, for devices that actually have a cursor.
+     *
+     * Both halves have to be forced, not just the visibility: the base rules
+     * above collapse `::details-content` to zero height and fade its child out,
+     * so setting only `content-visibility` here would reveal a panel clipped to
+     * nothing.
+     *
+     * Strictly an enhancement: where `::details-content` is unsupported both
+     * rules are ignored, nothing breaks, and the click still opens the card. */
+    .field-card:hover::details-content {
+      block-size: auto;
+      content-visibility: visible;
+    }
+
+    .field-card:hover .field-panel {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ---- Webby reacts to the cursor ----------------------------------
+   * Scoped to `.webby-stage` so the mascot component stays self-contained:
+   * it only publishes the part names, and the stage decides what to do
+   * with them. */
+  .webby-sparkle {
+    /* SVG transforms default to the user-space origin, which would fling a
+     * scaled sparkle across the canvas. Anchor each one to its own box. */
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) {
+    .webby-stage:hover .webby-sparkle {
+      animation: twinkle 1100ms ease-in-out infinite;
+    }
+
+    .webby-stage:hover .webby-tube {
+      animation: tube-bob 1600ms ease-in-out infinite;
+    }
+  }
+
+  /* ---- Pill navigation ----------------------------------------------
+   * ReactBits' PillNav, in CSS. Its signature is a filled pill that appears
+   * behind the item under the cursor and inverts the label.
+   *
+   * The original moves ONE pill element between items with GSAP. CSS cannot
+   * move a shared element to an arbitrary sibling position — that needs the
+   * item widths, which the cascade has no access to — so each item carries its
+   * own pill and grows it from the centre instead. Same read, zero JS, which is
+   * what a public content page is allowed (AGENTS.md §4.5).
+   *
+   * The label sits in a `<span>`; the span is positioned and comes after the
+   * pseudo-element in paint order, so it lands on top without a z-index.
+   *
+   * Hover is an enhancement, never the only route: `[aria-current]` gets the
+   * identical fill, so the active item is marked on a phone too (§4.9). */
+  .pill-nav__item {
+    position: relative;
+    display: inline-flex;
+    min-height: var(--spacing-touch, 44px);
+    align-items: center;
+    border-radius: 9999px;
+    color: var(--color-deep-charcoal);
+    transition: color 200ms var(--ease-soft);
+  }
+
+  .pill-nav__item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background-color: var(--color-deep-charcoal);
+    opacity: 0;
+    transform: scale(0.5);
+    transition:
+      transform 340ms var(--ease-soft),
+      opacity 240ms var(--ease-soft);
+  }
+
+  .pill-nav__item > span {
+    position: relative;
+  }
+
+  @media (hover: hover) {
+    .pill-nav__item:hover {
+      color: var(--color-cloud-white);
+    }
+
+    .pill-nav__item:hover::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .pill-nav__item[aria-current] {
+    color: var(--color-cloud-white);
+  }
+
+  .pill-nav__item[aria-current]::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Horizontal scroll on the narrowest phones, without a scrollbar rail
+   * cutting across a rounded pill. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

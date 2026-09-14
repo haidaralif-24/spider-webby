@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "title": "SpiderWeb",
+    "description": "Situs sains untuk anak. Belajar fisika, kimia, dan biologi lewat eksperimen seru."
+  },
+  "brand": {
+    "name": "SpiderWeb",
+    "tagline": ["Jelajah", "Coba", "Temukan"]
+  },
+  "nav": {
+    "label": "Navigasi utama",
+    "home": "Beranda",
+    "fields": "Bidang",
+    "howItWorks": "Cara pakai",
+    "webby": "Webby",
+    "challenge": "Tantangan Hari Ini",
+    "badges": "Lencana",
+    "profile": "Profil"
+  },
+  "home": {
+    "hero": {
+      "title": "Sains Itu",
+      "titleAccent": "Petualangan!",
+      "subtitle": "Pilih satu bidang. Lalu coba eksperimennya.",
+      "ctaPrimary": "Mulai Jelajah",
+      "ctaSecondary": "Kenalan dengan Webby",
+      "mascotGreeting": "Halo! Aku Webby.",
+      "mascotAlt": "Webby, laba-laba ungu berkacamata pelindung, memegang tabung reaksi berisi cairan hijau."
+    },
+    "fieldsHeading": "Pilih Bidang",
+    "fieldsSubtitle": "Ada tiga bidang. Buka salah satu untuk melihat isinya.",
+    "fieldsCta": "Lihat halaman"
+  },
+  "howItWorks": {
+    "heading": "Cara Pakai",
+    "subtitle": "Tiga langkah saja.",
+    "steps": [
+      { "title": "Pilih bidang", "body": "Fisika, kimia, atau biologi." },
+      { "title": "Buka eksperimen", "body": "Ikuti langkahnya satu per satu." },
+      { "title": "Coba di rumah", "body": "Minta bantuan orang dewasa." }
+    ]
+  },
+  "footer": {
+    "trust": "Tanpa iklan. Tanpa data pribadi. Tanpa pelacakan.",
+    "note": "Situs sains untuk anak Indonesia."
+  },
+  "field": {
+    "fisika": "Fisika",
+    "kimia": "Kimia",
+    "biologi": "Biologi"
+  },
+  "fieldIntro": {
+    "fisika": "Gaya, gerak, dan cahaya. Kenapa bola selalu jatuh ke bawah?",
+    "kimia": "Campur, larut, dan berubah warna. Ayo bikin slime!",
+    "biologi": "Tumbuhan, hewan, dan tubuhmu. Kenapa daun berwarna hijau?"
+  },
+  "tabs": {
+    "eksperimen": "Eksperimen",
+    "trivia": "Trivia"
+  },
+  "experiment": {
+    "hookFallback": "Yuk, kita coba!",
+    "materials": "Alat dan Bahan",
+    "steps": "Langkah-Langkah",
+    "concepts": "Konsep",
+    "difficulty": "Tingkat Kesulitan",
+    "estimatedTime": "Perkiraan Waktu",
+    "minutes": "menit",
+    "difficultyLevels": {
+      "mudah": "Mudah",
+      "sedang": "Sedang",
+      "sulit": "Sulit"
+    }
+  },
+  "a11y": {
+    "skipToContent": "Langsung ke isi",
+    "flowchartTitle": "Alur eksperimen",
+    "flowchartDesc": "Diagram ini menunjukkan urutan langkah. Daftar lengkapnya ada di bawah."
+  },
+  "common": {
+    "back": "Kembali",
+    "next": "Lanjut",
+    "loading": "Sebentar ya..."
+  }
+}
