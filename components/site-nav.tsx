@@ -125,10 +125,12 @@ export function SiteNav({ label, homeItems, fieldItems }: SiteNavProps) {
         return el ? [{ href: item.href, el }] : [];
       });
 
-    if (sections.length === 0) {
-      setSectionHref(null);
-      return;
-    }
+    /* Nothing to observe on this route. Deliberately no `setSectionHref(null)`
+     * here: a synchronous setState in an effect body cascades a render, and
+     * `homeActive` below already refuses to read the stored value anywhere but
+     * the home page — so a stale section cannot leak onto a field page or a
+     * 404. */
+    if (sections.length === 0) return;
 
     let frame = 0;
 
@@ -174,13 +176,14 @@ export function SiteNav({ label, homeItems, fieldItems }: SiteNavProps) {
   }, [homeItems, pathname]);
 
   /**
-   * On the home page, a section is current once you scroll to it and "Beranda"
-   * is current only at the top. On a 404 the pathname matches nothing and there
-   * are no sections, so nothing is current — marking "Beranda" would be a lie,
-   * because the reader is not on the home page.
+   * Only the home page has sections, so only the home page may be marked from
+   * one — "Beranda" is current at the top, a section takes over once you scroll
+   * to it. Anywhere else nothing is current, which is correct: a reader on a
+   * field page or a 404 is not on a home-page section, and marking one would be
+   * a lie.
    */
-  const homeActive =
-    sectionHref ?? (pathname === homeItems[0]?.href ? homeItems[0].href : "");
+  const homeHref = homeItems[0]?.href ?? "";
+  const homeActive = pathname === homeHref ? (sectionHref ?? homeHref) : "";
   const active = onFieldPage ? pathname : homeActive;
 
   /**

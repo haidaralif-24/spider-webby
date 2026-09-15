@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scratch space: audit scripts and screenshots. Not shipped, not part of the
+    // app, and their warnings bury the ones that are.
+    ".workbuddy-ai/**",
   ]),
 ]);
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FieldIcon } from "@/components/field-icon";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
 import { TangleWeb } from "@/components/tangle-web";
 import { WebbyMark } from "@/components/webby-mark";
 import { FIELDS } from "@/lib/content";
@@ -10,9 +12,13 @@ import id from "@/messages/id.json";
 /**
  * 404.
  *
- * Rendered inside the root layout, so it keeps the header, the footer and the
- * way home — which is most of what a 404 has to do. Catches both `notFound()`
- * calls from a page and URLs that match no route at all.
+ * Renders its own chrome. It used to inherit the header and footer from the root
+ * layout, but those moved into the `(site)` route group so `/admin` could opt out
+ * of them — and a root-level `not-found.tsx` sits *outside* every group, so an
+ * unmatched URL would otherwise land on a bare page with no way home. That is
+ * exactly what a 404 must not be.
+ *
+ * It catches both `notFound()` calls from a page and URLs that match no route.
  *
  * It does real work rather than just apologising: the three field chips are
  * recovery links, because a child who mistyped a URL should end up somewhere
@@ -27,7 +33,9 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-lab-mist">
+      <SiteHeader />
+      <main id="content" className="w-full flex-1">
+        <section className="relative isolate overflow-hidden bg-lab-mist">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
@@ -114,7 +122,9 @@ export default function NotFound() {
             </li>
           ))}
         </ul>
-      </section>
+        </section>
+      </main>
+      <SiteFooter />
     </>
   );
 }

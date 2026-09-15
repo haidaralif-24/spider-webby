@@ -32,7 +32,37 @@ type DeliveryOptions = {
   width: number;
   /** Emitted as `q_*`. Omit to let Cloudinary choose (`q_auto`). */
   quality?: number;
+  /**
+   * Slot aspect ratio, e.g. `"16:9"`. When given, the image is centre-cropped to
+   * that ratio; when omitted it is scaled down and never cropped.
+   *
+   * **This is a reversal of an earlier reading of AGENTS.md §4.6**, which asks
+   * for a per-slot crop preset "on upload". Baking crops into the stored asset
+   * cannot work here: `media` has no slot column, so a cropped `public_id` would
+   * arrive at the renderer unlabelled and unusable in any other slot. The whole
+   * point of storing `public_id` and building the URL at render time (§3.2,
+   * §4.4) is that one original serves every slot. The crop still happens per
+   * slot — just at delivery, where the slot is actually known.
+   */
+  aspect?: string;
 };
+
+/**
+ * The crop presets from AGENTS.md §4.6, as delivery-time ratios.
+ *
+ * Written out rather than computed so the aspect strings are greppable against
+ * the rule that specifies them.
+ */
+export const MEDIA_SLOTS = {
+  /** Experiment hero. */
+  hero: { aspect: "16:9", width: 1200 },
+  /** Illustration inside a numbered step. */
+  step: { aspect: "4:3", width: 800 },
+  /** Grid card thumbnail. */
+  thumb: { aspect: "1:1", width: 400 },
+} as const;
+
+export type MediaSlot = keyof typeof MEDIA_SLOTS;
 
 /**
  * Builds a delivery URL from a stored `public_id`.
@@ -43,7 +73,7 @@ type DeliveryOptions = {
  */
 export function buildDeliveryUrl(
   publicId: string,
-  { width, quality }: DeliveryOptions,
+  { width, quality, aspect }: DeliveryOptions,
 ): string {
   if (!CLOUD_NAME) {
     throw new Error(
@@ -55,15 +85,34 @@ export function buildDeliveryUrl(
     "f_auto",
     quality === undefined ? "q_auto" : `q_${quality}`,
     `w_${Math.round(width)}`,
-    // c_limit: never upscale past the original, never crop here. Cropping is an
-    // upload-time concern with a per-slot preset (AGENTS.md §4.6), not a
-    // delivery-time one.
-    "c_limit",
+    aspect ? `c_fill,ar_${aspect}` : "c_limit",
   ].join(",");
 
   const id = publicId.replace(/^\/+/, "");
 
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms}/${id}`;
+}
+
+/**
+ * A loader bound to one slot's crop.
+ *
+ * `next/image` calls its loader with `{ src, width, quality }` and nothing else,
+ * so a per-slot crop cannot be passed through as a prop — it has to be closed
+ * over. Building the loader here keeps every Cloudinary URL decision in this
+ * file rather than leaking the transform syntax into a component.
+ */
+export function makeCloudinaryLoader(aspect?: string) {
+  return function loader({
+    src,
+    width,
+    quality,
+  }: {
+    src: string;
+    width: number;
+    quality?: number;
+  }): string {
+    return buildDeliveryUrl(src, { width, quality, aspect });
+  };
 }
 
 /**

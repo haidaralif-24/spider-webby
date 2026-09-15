@@ -24,6 +24,8 @@ import type { FieldSlug } from "@/lib/content";
 export type FieldTheme = {
   /** Solid field-coloured fill. */
   fill: string;
+  /** The same colour as an SVG `fill-*` utility, for inline art. */
+  tone: string;
   /** Faint ink colour for the motif, as a Tailwind stroke/fill utility. */
   ink: string;
   /** Background texture for the field hero. */
@@ -43,6 +45,7 @@ export type FieldTheme = {
 export const FIELD_THEME: Record<FieldSlug, FieldTheme> = {
   fisika: {
     fill: "bg-field-fisika",
+    tone: "fill-field-fisika",
     ink: "stroke-deep-charcoal",
     surface: "field-grid-paper",
     glow: "[--glow-color:var(--color-curious-blue)]",
@@ -51,6 +54,7 @@ export const FIELD_THEME: Record<FieldSlug, FieldTheme> = {
   },
   kimia: {
     fill: "bg-field-kimia",
+    tone: "fill-field-kimia",
     ink: "stroke-deep-charcoal",
     surface: "field-dot-lattice",
     glow: "[--glow-color:var(--color-fun-purple)]",
@@ -59,6 +63,7 @@ export const FIELD_THEME: Record<FieldSlug, FieldTheme> = {
   },
   biologi: {
     fill: "bg-field-biologi",
+    tone: "fill-field-biologi",
     ink: "stroke-deep-charcoal",
     surface: "field-organic",
     glow: "[--glow-color:var(--color-science-green)]",

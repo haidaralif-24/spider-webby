@@ -1,6 +1,6 @@
 import id from "@/messages/id.json";
 import { ExperimentCard } from "@/components/experiment-card";
-import type { Experiment, FieldSlug } from "@/lib/content";
+import type { ExperimentCardData, FieldSlug } from "@/lib/content";
 import { FIELD_THEME } from "@/lib/field-theme";
 
 /**
@@ -26,7 +26,7 @@ export function ExperimentGrid({
   experiments,
 }: {
   field: FieldSlug;
-  experiments: readonly Experiment[];
+  experiments: readonly ExperimentCardData[];
 }) {
   const theme = FIELD_THEME[field];
 
