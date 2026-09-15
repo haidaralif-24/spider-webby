@@ -101,6 +101,18 @@
   }
 }
 
+/* The radius of the hole in the page-transition wipe.
+ *
+ * Registered with `@property` so it can be *interpolated*. An unregistered
+ * custom property is an opaque string as far as the animation engine is
+ * concerned — it would jump from 150% to 0% in one frame, which is the exact
+ * snap this is here to avoid. Support: Chrome 85+, Safari 16.4+, Firefox 128+. */
+@property --wipe-hole {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 150%;
+}
+
 @layer base {
   html {
     /* The palette is locked and light. Never let the OS dark theme repaint it —
@@ -127,14 +139,6 @@
     html {
       scroll-behavior: smooth;
     }
-  }
-
-  /* Lets `block-size: auto` be interpolated, which is the only way to animate
-   * an accordion whose open height is unknown. Declared globally because the
-   * property has no per-element form; it only has an effect where a transition
-   * on an `auto` size actually exists. */
-  :root {
-    interpolate-size: allow-keywords;
   }
 
   /* Motion is decoration, never information. Anyone who has asked their OS for
@@ -232,6 +236,111 @@
   }
 }
 
+/* A very slow breath on the hero glows, so the background is alive without
+ * asking for attention.
+ *
+ * It animates the individual `translate` property rather than `transform`,
+ * which is what lets it run at the same time as the `blob-in` entrance — that
+ * one owns `transform: scale()`, this one owns `translate`, and the two compose
+ * instead of overwriting each other. */
+@keyframes glow-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -18px;
+  }
+}
+
+/* One dot of the brand line, popping in turn with its siblings. */
+@keyframes dot-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.7);
+  }
+}
+
+/* Physics: one slow lap around the orbit. */
+@keyframes motif-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Chemistry: a bubble swelling, rising, and popping out of sight. */
+@keyframes motif-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.55);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1);
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-170px) scale(1.15);
+  }
+}
+
+/* Biology: a leaf breathing, hinged at the stem end. */
+@keyframes motif-sway {
+  0%,
+  100% {
+    transform: rotate(-1.7deg);
+  }
+  50% {
+    transform: rotate(1.7deg);
+  }
+}
+
+/* ---- Page transition wipes ------------------------------------------
+ * The iris closes the hole to nothing and opens it again; the slide moves a
+ * curtain across. `--wipe-enter` / `--wipe-exit` carry the travel direction, so
+ * one pair of keyframes serves both. */
+@keyframes wipe-iris-close {
+  from {
+    --wipe-hole: 150%;
+  }
+  to {
+    --wipe-hole: 0%;
+  }
+}
+
+@keyframes wipe-iris-open {
+  from {
+    --wipe-hole: 0%;
+  }
+  to {
+    --wipe-hole: 150%;
+  }
+}
+
+@keyframes wipe-slide-cover {
+  from {
+    transform: translateX(var(--wipe-enter));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes wipe-slide-reveal {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--wipe-exit));
+  }
+}
+
 @keyframes twinkle {
   0%,
   100% {
@@ -264,6 +373,182 @@
       transparent 1.5px
     );
     background-size: 22px 22px;
+  }
+
+  /* ---- Hero glow ----------------------------------------------------
+   * A radial-gradient, NOT `filter: blur()`.
+   *
+   * These were three 288–320px circles with `blur-3xl` — a 64px blur is a
+   * filter pass over a large offscreen buffer, three times over, and each one
+   * holds its own composited layer. A soft-stopped radial-gradient produces the
+   * same glow as a single paint, with no filter and no extra layer.
+   *
+   * `circle closest-side` keeps the falloff inside the element's own box, so
+   * the square never shows an edge. The boxes are ~11% larger than the blurred
+   * circles were, because a gradient cannot paint past its own bounds and the
+   * blur used to bleed outward.
+   *
+   * Colour arrives through `--glow-color`, so the call site still never writes
+   * a hex literal (AGENTS.md §4.8). */
+  .hero-glow {
+    background-image: radial-gradient(
+      circle closest-side,
+      color-mix(
+          in oklab,
+          var(--glow-color, var(--color-fun-purple)) var(--glow-strength, 35%),
+          transparent
+        )
+        0%,
+      color-mix(
+          in oklab,
+          var(--glow-color, var(--color-fun-purple)) var(--glow-strength, 35%),
+          transparent
+        )
+        50%,
+      transparent 100%
+    );
+    /* The entrance and the drift run together: `blob-in` owns `transform`,
+     * `glow-drift` owns `translate`, so neither cancels the other. Drift waits
+     * for the entrance to land before it starts. */
+    animation:
+      blob-in 900ms var(--ease-soft) backwards,
+      glow-drift 22s var(--ease-glide) infinite;
+    animation-delay: var(--reveal-delay, 0ms), 900ms;
+  }
+
+  /* ---- Deferred rendering -------------------------------------------
+   * Skips layout and paint for sections that are off-screen. Two things get
+   * cheaper: the load-time entrance animations stop costing paint while nobody
+   * can see them, and opening a field card stops re-laying-out content below
+   * the fold. That height reflow was the one measurable cost in the profile
+   * (13.9ms for the first frame of a 234px change).
+   *
+   * `contain-intrinsic-size` supplies a placeholder height so the scrollbar
+   * does not lurch before the section has ever been rendered; the `auto` keyword
+   * then remembers the real height from the first render onward. */
+  .defer-render {
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--intrinsic-size, 640px);
+  }
+
+  /* ---- Hero copy reactions ------------------------------------------
+   * Everything in the hero answers the cursor. All of it is decoration: none of
+   * these states carries information, and the page reads identically with every
+   * rule below deleted (AGENTS.md §4.9 — nothing may be reachable *only* by
+   * hovering). */
+
+  /* The highlighted word in the headline.
+   *
+   * The reaction is a growing hard shadow rather than a `transform`, because
+   * transforms do not apply to non-replaced inline boxes — and the span has to
+   * stay inline for `box-decoration-clone` to keep the highlight's padding and
+   * radius from affecting the heading's line height. A shadow gets the "pops
+   * forward" read without touching layout. */
+  .hero-title-accent {
+    transition: box-shadow 420ms var(--ease-glide);
+  }
+
+  @media (hover: hover) {
+    .hero-title:hover .hero-title-accent {
+      box-shadow: 5px 5px 0 0 var(--color-deep-charcoal);
+    }
+  }
+
+  /* Section body copy. Shared by the hero subtitle, the field chooser and
+   * "Cara pakai" so all three answer the cursor the same way. */
+  .copy-lift {
+    transition:
+      transform 420ms var(--ease-glide),
+      color 420ms var(--ease-soft);
+  }
+
+  @media (hover: hover) {
+    .copy-lift:hover {
+      transform: translateY(-2px);
+      color: var(--color-deep-charcoal);
+    }
+  }
+
+  /* ---- "Cara pakai" step cards --------------------------------------
+   * Same lift as `.btn-playful`, on cards that are pure content. Nothing here
+   * is reachable *only* by hovering — the reaction is delight, and every card
+   * reads identically with these rules deleted (AGENTS.md §4.9).
+   *
+   * The shadow lives here rather than as a `shadow-*` utility, because
+   * Tailwind's utilities layer outranks the components layer and would win the
+   * `:hover` box-shadow. Same reason as `.field-card`. */
+  .step-card {
+    box-shadow: 4px 4px 0 0 var(--color-deep-charcoal);
+    transition:
+      transform 460ms var(--ease-glide),
+      box-shadow 460ms var(--ease-glide),
+      opacity 380ms var(--ease-soft);
+  }
+
+  .step-badge {
+    transition: transform 520ms var(--ease-glide);
+  }
+
+  @media (hover: hover) {
+    .step-card:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 8px 8px 0 0 var(--color-deep-charcoal);
+    }
+
+    /* The number pops out of its circle as the card lifts. */
+    .step-card:hover .step-badge {
+      transform: scale(1.15) rotate(-8deg);
+    }
+
+    /* The other two step back, the same choreography the field cards use, so
+     * one card is clearly the one being read. */
+    .step-list:has(.step-card:hover) .step-card:not(:hover) {
+      opacity: 0.82;
+      transform: translateY(3px) scale(0.985);
+    }
+  }
+
+  /* The brand line. Hovering the pill lifts it and sets the three dots popping
+   * in sequence, so "Jelajah • Coba • Temukan" reads as three beats rather than
+   * as one caption. */
+  .tagline-pill {
+    transition:
+      transform 420ms var(--ease-glide),
+      box-shadow 420ms var(--ease-glide);
+  }
+
+  .tagline-dot {
+    transition: transform 320ms var(--ease-glide);
+  }
+
+  @media (hover: hover) {
+    .tagline-pill:hover {
+      transform: translateY(-3px);
+      box-shadow: 4px 4px 0 0 var(--color-deep-charcoal);
+    }
+
+    .tagline-pill:hover .tagline-dot {
+      animation: dot-pop 1000ms var(--ease-glide) infinite;
+    }
+
+    .tagline-pill:hover .tagline-item:nth-child(2) .tagline-dot {
+      animation-delay: 140ms;
+    }
+
+    .tagline-pill:hover .tagline-item:nth-child(3) .tagline-dot {
+      animation-delay: 280ms;
+    }
+  }
+
+  /* Webby's speech bubble, which leans in slightly when the card is engaged. */
+  .webby-bubble {
+    transition: transform 520ms var(--ease-glide);
+  }
+
+  @media (hover: hover) {
+    .webby-stage:hover .webby-bubble {
+      transform: scale(1.04);
+    }
   }
 
   /* ---- Entrance -----------------------------------------------------
@@ -401,51 +686,85 @@
 
   /* ---- Accordion height ---------------------------------------------
    * `<details>` has no built-in open/close transition, so expanding a card used
-   * to push every section below it down in a single frame — the page jumped and
-   * "Cara pakai" teleported.
+   * to push every section below it down in a single frame.
    *
-   * `::details-content` is the box the browser shows and hides. Giving it a
-   * `block-size` and transitioning that, plus `content-visibility` as an
-   * `allow-discrete` property so it flips at the halfway point rather than
-   * instantly, turns the jump into a settle.
+   * Two attempts before this one, both of which animated in Chrome and snapped
+   * in Safari:
+   *   1. `block-size: 0 -> auto` on `::details-content`. Needs
+   *      `interpolate-size: allow-keywords`, which is Chrome-only and still
+   *      flagged experimental by MDN.
+   *   2. `grid-template-rows: 0fr -> 1fr`. Widely documented as the portable
+   *      answer, and it is not.
    *
-   * Strictly an enhancement. Without `interpolate-size` support, `block-size:
-   * auto` is not interpolatable and the browser snaps exactly as it did before
-   * — no regression, just no smoothing. Browsers with no `::details-content`
-   * support ignore the whole block and keep the native behaviour. */
+   * So this stops looking for a clever modern technique and uses `max-height`,
+   * which every browser has animated since before any of this existed. There is
+   * no support question to get wrong.
+   *
+   * The cost is honest: `max-height` cannot be sized to the content, so the
+   * transition is faster than its duration suggests — the panel reaches its real
+   * height at roughly 70% of the 460ms and then holds. `--ease-glide` eases out
+   * into that, and the body's own fade runs the whole time, so the tail is not
+   * dead air. 16rem is the ceiling: the longest intro at the narrowest card
+   * measures about 180px, so there is room without wasting the curve.
+   *
+   * `<details>` also hides its content the instant `[open]` goes away, which is
+   * why the close used to snap too. `content-visibility: visible` takes that job
+   * away from the browser and gives it to `.field-panel`, which can animate it.
+   * `visibility: hidden` is what keeps a collapsed panel out of the
+   * accessibility tree and out of the tab order — the reason this is not just
+   * `max-height: 0`. */
   .field-card::details-content {
-    block-size: 0;
-    overflow: clip;
-    transition:
-      block-size 320ms var(--ease-glide),
-      content-visibility 320ms allow-discrete;
+    content-visibility: visible;
   }
 
-  .field-card[open]::details-content {
-    block-size: auto;
-  }
-
-  /* The panel fades and drops in behind the opening height, so the reveal
-   * reads as content arriving rather than as a box being unclipped.
-   *
-   * This targets the panel element itself, not a child of `::details-content`.
-   * A pseudo-element cannot be followed by a combinator — `::details-content > *`
-   * is a parse error, not a selector that matches nothing — and the panel is in
-   * the light DOM anyway, so a descendant selector on `[open]` reaches it. */
   .field-panel {
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition:
+      max-height 460ms var(--ease-glide),
+      visibility 0s linear 460ms;
+  }
+
+  .field-panel-body {
     opacity: 0;
     transform: translateY(-8px);
     transition:
-      opacity 220ms var(--ease-soft),
-      transform 320ms var(--ease-glide);
+      opacity 300ms var(--ease-soft),
+      transform 460ms var(--ease-glide);
   }
 
   .field-card[open] .field-panel {
+    max-height: 16rem;
+    visibility: visible;
+    transition:
+      max-height 460ms var(--ease-glide),
+      visibility 0s;
+  }
+
+  .field-card[open] .field-panel-body {
     opacity: 1;
     transform: translateY(0);
   }
 
+  /* Hover opens the card too, but only where there is a cursor to hover with.
+   * Scoped inside the media query rather than cancelled outside it: a touch
+   * device can latch `:hover` after a tap, and a cancellation rule would then
+   * close a card the reader had just opened by tapping it. */
   @media (hover: hover) {
+    .field-card:hover .field-panel {
+      max-height: 16rem;
+      visibility: visible;
+      transition:
+        max-height 460ms var(--ease-glide),
+        visibility 0s;
+    }
+
+    .field-card:hover .field-panel-body {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     /* The focused card straightens and steps forward. */
     .field-card:hover {
       z-index: 10;
@@ -458,25 +777,6 @@
       transform: rotate(calc(var(--tilt, 0deg) * 1.6)) translateY(5px)
         scale(0.97);
       opacity: 0.88;
-    }
-
-    /* Hover also opens the card, for devices that actually have a cursor.
-     *
-     * Both halves have to be forced, not just the visibility: the base rules
-     * above collapse `::details-content` to zero height and fade its child out,
-     * so setting only `content-visibility` here would reveal a panel clipped to
-     * nothing.
-     *
-     * Strictly an enhancement: where `::details-content` is unsupported both
-     * rules are ignored, nothing breaks, and the click still opens the card. */
-    .field-card:hover::details-content {
-      block-size: auto;
-      content-visibility: visible;
-    }
-
-    .field-card:hover .field-panel {
-      opacity: 1;
-      transform: translateY(0);
     }
   }
 
@@ -499,6 +799,174 @@
     .webby-stage:hover .webby-tube {
       animation: tube-bob 1600ms ease-in-out infinite;
     }
+  }
+
+  /* ---- Field page textures -------------------------------------------
+   * Three backgrounds that share nothing, because the whole point of the three
+   * field pages is that they do not read as one page in three colours. All of
+   * them are pure CSS — no image request, no raster weight (AGENTS.md §4.4).
+   *
+   * Physics gets ruled graph paper: technical, measured, straight.
+   * Chemistry gets an offset dot lattice: atoms in a crystal, evenly spaced.
+   * Biology gets no lattice at all — two rings, off-centre and at different
+   * sizes, so nothing lines up. That is the difference that matters. */
+  .field-grid-paper {
+    background-image:
+      linear-gradient(to right, var(--color-web-gray) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-web-gray) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .field-dot-lattice {
+    background-image:
+      radial-gradient(var(--color-web-gray) 2px, transparent 2px),
+      radial-gradient(var(--color-web-gray) 2px, transparent 2px);
+    background-size: 34px 34px;
+    background-position:
+      0 0,
+      17px 17px;
+  }
+
+  .field-organic {
+    background-image:
+      radial-gradient(
+        circle at 22% 26%,
+        transparent 54px,
+        var(--color-web-gray) 54px,
+        var(--color-web-gray) 56px,
+        transparent 56px
+      ),
+      radial-gradient(
+        circle at 74% 68%,
+        transparent 80px,
+        var(--color-web-gray) 80px,
+        var(--color-web-gray) 82px,
+        transparent 82px
+      );
+    background-size: 340px 340px;
+  }
+
+  /* ---- Field motifs --------------------------------------------------
+   * One moving part per field, chosen to match what the field is about. */
+  .motif-orbit {
+    /* `view-box` puts the origin in viewBox units, which is the only way to
+     * name the orbit's centre — `fill-box` would rotate the planet about itself
+     * and it would never go anywhere. */
+    transform-box: view-box;
+    transform-origin: 170px 130px;
+    animation: motif-orbit 18s linear infinite;
+  }
+
+  .motif-bubble {
+    /* Duration and delay are per-bubble, set inline in the motif. */
+    animation-name: motif-rise;
+    animation-timing-function: ease-in;
+    animation-iteration-count: infinite;
+  }
+
+  .motif-leaf {
+    /* Hinged at the stem end, so it sways rather than spins. */
+    transform-box: view-box;
+    transform-origin: 48px 272px;
+    animation: motif-sway 9s ease-in-out infinite;
+  }
+
+  /* The motif card. Same lift as the mascot card on the home page, so the two
+   * pages feel like one product. */
+  .field-stage {
+    box-shadow: 8px 8px 0 0 var(--color-deep-charcoal);
+    transition:
+      transform 520ms var(--ease-glide),
+      box-shadow 520ms var(--ease-glide);
+  }
+
+  @media (hover: hover) {
+    .field-stage:hover {
+      transform: translateY(-7px) rotate(-1deg);
+      box-shadow: 13px 13px 0 0 var(--color-deep-charcoal);
+    }
+  }
+
+  /* ---- Page transitions ----------------------------------------------
+   * The overlay the field-page navigations wipe through. See
+   * `components/page-transition.tsx` for when each mode is chosen and why this
+   * is an overlay rather than the View Transitions API.
+   *
+   * `--wipe-tint` is the destination field's colour, set inline from a token.
+   * The colour lives on the overlay, not on the page, so it can be the colour
+   * of a page that has not rendered yet. */
+  .page-wipe {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .page-wipe[data-phase="cover"],
+  .page-wipe[data-phase="reveal"] {
+    visibility: visible;
+  }
+
+  /* Iris — a wash of colour with a hole in the middle. `transparent` inside the
+   * hole and opaque outside it, so at `--wipe-hole: 150%` the hole swallows the
+   * whole element and nothing is painted, and at 0% the colour covers
+   * everything. That is the full range the two keyframes sweep. */
+  .page-wipe[data-mode="iris"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--wipe-tint);
+    --wipe-hole: 150%;
+    mask-image: radial-gradient(
+      circle at 50% 50%,
+      transparent 0 var(--wipe-hole),
+      #000 var(--wipe-hole)
+    );
+    -webkit-mask-image: radial-gradient(
+      circle at 50% 50%,
+      transparent 0 var(--wipe-hole),
+      #000 var(--wipe-hole)
+    );
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+  }
+
+  /* Slide — a curtain that crosses the screen. Forward travels right to left,
+   * which is the direction the navbar reads. */
+  .page-wipe[data-direction="forward"] {
+    --wipe-enter: 100%;
+    --wipe-exit: -100%;
+  }
+
+  .page-wipe[data-direction="backward"] {
+    --wipe-enter: -100%;
+    --wipe-exit: 100%;
+  }
+
+  .page-wipe[data-mode="slide"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--wipe-tint);
+  }
+
+  .page-wipe[data-phase="cover"][data-mode="iris"]::before {
+    animation: wipe-iris-close 300ms var(--ease-glide) forwards;
+  }
+
+  .page-wipe[data-phase="reveal"][data-mode="iris"]::before {
+    animation: wipe-iris-open 420ms var(--ease-glide) forwards;
+  }
+
+  .page-wipe[data-phase="cover"][data-mode="slide"]::before {
+    animation: wipe-slide-cover 300ms var(--ease-glide) forwards;
+  }
+
+  .page-wipe[data-phase="reveal"][data-mode="slide"]::before {
+    animation: wipe-slide-reveal 420ms var(--ease-glide) forwards;
   }
 
   /* ---- Pill navigation ----------------------------------------------

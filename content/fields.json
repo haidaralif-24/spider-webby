@@ -1,0 +1,32 @@
+[
+  {
+    "slug": "fisika",
+    "name": "Fisika",
+    "color_token": "fisika",
+    "order": 1,
+    "intro": [
+      "Fisika mempelajari gerak, gaya, dan cahaya. Semua benda di sekitarmu mengikuti aturannya.",
+      "Kenapa bola selalu jatuh ke bawah? Kenapa pelangimu muncul setelah hujan? Fisika punya jawabannya."
+    ]
+  },
+  {
+    "slug": "kimia",
+    "name": "Kimia",
+    "color_token": "kimia",
+    "order": 2,
+    "intro": [
+      "Kimia mempelajari bahan-bahan di sekitar kita. Saat dua bahan bertemu, mereka bisa berubah.",
+      "Warna bisa berganti. Gelembung bisa muncul. Semua itu namanya reaksi kimia."
+    ]
+  },
+  {
+    "slug": "biologi",
+    "name": "Biologi",
+    "color_token": "biologi",
+    "order": 3,
+    "intro": [
+      "Biologi mempelajari makhluk hidup. Tumbuhan, hewan, dan tubuhmu sendiri.",
+      "Kenapa daun berwarna hijau? Kenapa kamu bernapas? Biologi menjelaskannya."
+    ]
+  }
+]

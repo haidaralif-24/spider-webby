@@ -1,3 +1,4 @@
+import Link from "next/link";
 import id from "@/messages/id.json";
 import { FieldIcon, type FieldSlug } from "@/components/field-icon";
 
@@ -72,7 +73,7 @@ export function FieldChooser() {
       >
         {id.home.fieldsHeading}
       </h2>
-      <p className="reveal mt-4 max-w-md text-base text-deep-charcoal/75 [--reveal-delay:120ms]">
+      <p className="copy-lift reveal mt-4 max-w-md text-base text-deep-charcoal/75 [--reveal-delay:120ms]">
         {id.home.fieldsSubtitle}
       </p>
 
@@ -115,23 +116,31 @@ export function FieldChooser() {
                 </span>
               </summary>
 
-              <div className="field-panel px-3 pb-3">
-                {/* The explanation sits on Cloud White rather than directly on
-                 * the field colour. Charcoal on Curious Blue and Science Green
-                 * clears 4.5:1, but on Fun Purple it lands at 4.06:1 — under
-                 * the body-text floor, so it gets its own surface (§4.9). */}
-                <div className="rounded-2xl border-[3px] border-deep-charcoal bg-cloud-white p-4">
-                  <p className="text-base text-deep-charcoal">{field.intro}</p>
-                  {/* `/fisika`, `/kimia`, `/biologi` are P0 routing work that
-                   * does not exist yet, so this 404s until those pages land.
-                   * The href is already correct, so shipping the routes is the
-                   * only change needed. */}
-                  <a
-                    href={`/${field.slug}`}
-                    className="btn-playful mt-4 inline-flex min-h-touch items-center justify-center rounded-2xl border-[3px] border-deep-charcoal bg-science-green px-5 py-2 text-base font-bold text-deep-charcoal"
-                  >
-                    {id.home.fieldsCta}
-                  </a>
+              {/* Three nested elements, each with one job:
+               *   .field-panel      — the grid whose row height animates
+               *   .field-panel-clip — lets that row shrink below its content
+               *   .field-panel-body — the surface that fades in behind it
+               * See the accordion block in globals.css for why the height is
+               * animated with `grid-template-rows` rather than `block-size`. */}
+              <div className="field-panel">
+                <div className="field-panel-clip px-3 pb-3">
+                  {/* The explanation sits on Cloud White rather than directly
+                   * on the field colour. Charcoal on Curious Blue and Science
+                   * Green clears 4.5:1, but on Fun Purple it lands at 4.06:1 —
+                   * under the body-text floor, so it gets its own surface
+                   * (§4.9). */}
+                  <div className="field-panel-body rounded-2xl border-[3px] border-deep-charcoal bg-cloud-white p-4">
+                    <p className="text-base text-deep-charcoal">{field.intro}</p>
+                    {/* `next/link`, not `<a>`: a plain anchor is a full document
+                     * load, so the header would flash white and the page
+                     * transition would never get a chance to run. */}
+                    <Link
+                      href={`/${field.slug}`}
+                      className="btn-playful mt-4 inline-flex min-h-touch items-center justify-center rounded-2xl border-[3px] border-deep-charcoal bg-science-green px-5 py-2 text-base font-bold text-deep-charcoal"
+                    >
+                      {id.home.fieldsCta}
+                    </Link>
+                  </div>
                 </div>
               </div>
             </details>

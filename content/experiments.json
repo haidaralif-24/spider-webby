@@ -1,0 +1,83 @@
+[
+  {
+    "slug": "balon-roket",
+    "field": "fisika",
+    "order": 1,
+    "title": "Balon Roket",
+    "hook": "Tiup balon, lalu lepaskan. Balonnya terbang sendiri! Kenapa bisa begitu?",
+    "difficulty": "mudah",
+    "est_minutes": 10
+  },
+  {
+    "slug": "pelangi-air",
+    "field": "fisika",
+    "order": 2,
+    "title": "Pelangi Air",
+    "hook": "Kamu bisa membuat pelangi di dalam rumah. Hanya perlu air dan cahaya.",
+    "difficulty": "sedang",
+    "est_minutes": 15
+  },
+  {
+    "slug": "jembatan-kertas",
+    "field": "fisika",
+    "order": 3,
+    "title": "Jembatan Kertas",
+    "hook": "Kertas itu tipis. Tapi bisa kuat menahan buku. Rahasianya ada di bentuknya.",
+    "difficulty": "sedang",
+    "est_minutes": 20
+  },
+  {
+    "slug": "slime-ajaib",
+    "field": "kimia",
+    "order": 1,
+    "title": "Slime Ajaib",
+    "hook": "Campur dua bahan, aduk, dan jadilah slime kenyal. Kamu bisa membuatnya sendiri!",
+    "difficulty": "mudah",
+    "est_minutes": 20
+  },
+  {
+    "slug": "gunung-meletus",
+    "field": "kimia",
+    "order": 2,
+    "title": "Gunung Meletus",
+    "hook": "Bikin gunung berapi di meja makan. Busanya meluap seperti lava!",
+    "difficulty": "mudah",
+    "est_minutes": 15
+  },
+  {
+    "slug": "tinta-rahasia",
+    "field": "kimia",
+    "order": 3,
+    "title": "Tinta Rahasia",
+    "hook": "Tulis pesan rahasia dengan air lemon. Pesannya hilang, lalu muncul lagi.",
+    "difficulty": "sedang",
+    "est_minutes": 15
+  },
+  {
+    "slug": "daun-bernapas",
+    "field": "biologi",
+    "order": 1,
+    "title": "Daun Bernapas",
+    "hook": "Daun ternyata bernapas. Kamu bisa melihat gelembungnya di dalam air.",
+    "difficulty": "sedang",
+    "est_minutes": 20
+  },
+  {
+    "slug": "bunga-berwarna",
+    "field": "biologi",
+    "order": 2,
+    "title": "Bunga Berwarna",
+    "hook": "Beri bunga putih air berwarna. Kelopaknya berganti warna sendiri.",
+    "difficulty": "mudah",
+    "est_minutes": 30
+  },
+  {
+    "slug": "sidik-jari",
+    "field": "biologi",
+    "order": 3,
+    "title": "Sidik Jari",
+    "hook": "Setiap orang punya sidik jari yang berbeda. Bahkan kamu dan aku!",
+    "difficulty": "mudah",
+    "est_minutes": 15
+  }
+]

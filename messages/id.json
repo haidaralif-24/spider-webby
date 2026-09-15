@@ -31,6 +31,23 @@
     "fieldsSubtitle": "Ada tiga bidang. Buka salah satu untuk melihat isinya.",
     "fieldsCta": "Lihat halaman"
   },
+  "notFound": {
+    "title": "Halaman tidak ditemukan",
+    "heading": "Aduh, halamannya tidak ada.",
+    "body": "Mungkin tautannya salah. Atau halamannya sudah pindah.",
+    "cta": "Kembali ke Beranda",
+    "mascot": "Aku juga tidak menemukannya.",
+    "fieldsHeading": "Coba salah satu bidang ini"
+  },
+  "fieldPage": {
+    "back": "Kembali ke Beranda",
+    "cta": "Lihat eksperimen",
+    "tabsLabel": "Pilih tampilan",
+    "soon": "segera",
+    "experimentsHeading": "Eksperimen di bidang ini",
+    "experimentsSubtitle": "Pilih satu, lalu ikuti langkahnya.",
+    "timePrefix": "Sekitar"
+  },
   "howItWorks": {
     "heading": "Cara Pakai",
     "subtitle": "Tiga langkah saja.",
@@ -41,7 +58,6 @@
     ]
   },
   "footer": {
-    "trust": "Tanpa iklan. Tanpa data pribadi. Tanpa pelacakan.",
     "note": "Situs sains untuk anak Indonesia."
   },
   "field": {

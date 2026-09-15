@@ -33,7 +33,7 @@ export function HowItWorks() {
     <section
       id="cara-pakai"
       aria-labelledby="cara-pakai-heading"
-      className="scroll-mt-24 bg-linear-to-b from-cloud-white via-lab-mist to-cloud-white py-20 sm:py-24"
+      className="defer-render scroll-mt-24 bg-linear-to-b from-cloud-white via-lab-mist to-cloud-white py-20 sm:py-24"
     >
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
         <h2
@@ -42,19 +42,19 @@ export function HowItWorks() {
         >
           {id.howItWorks.heading}
         </h2>
-        <p className="reveal mt-4 max-w-md text-base text-deep-charcoal/75 [--reveal-delay:120ms]">
+        <p className="copy-lift reveal mt-4 max-w-md text-base text-deep-charcoal/75 [--reveal-delay:120ms]">
           {id.howItWorks.subtitle}
         </p>
 
-        <ol className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <ol className="step-list mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {id.howItWorks.steps.map((step, index) => (
             <li
               key={step.title}
-              className={`bounce-in ${STEP_DELAYS[index]} rounded-3xl border-[3px] border-deep-charcoal bg-cloud-white p-5 shadow-playful-sm`}
+              className={`step-card bounce-in ${STEP_DELAYS[index]} rounded-3xl border-[3px] border-deep-charcoal bg-cloud-white p-5`}
             >
               <span
                 aria-hidden="true"
-                className="flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-deep-charcoal bg-discovery-yellow font-display text-lg font-extrabold text-deep-charcoal"
+                className="step-badge flex h-11 w-11 items-center justify-center rounded-full border-[3px] border-deep-charcoal bg-discovery-yellow font-display text-lg font-extrabold text-deep-charcoal"
               >
                 {index + 1}
               </span>

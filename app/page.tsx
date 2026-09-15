@@ -1,21 +1,17 @@
 import { FieldChooser } from "@/components/field-chooser";
 import { HeroSection } from "@/components/hero-section";
 import { HowItWorks } from "@/components/how-it-works";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 
 /**
  * Home.
  *
- * Five bands, top to bottom: header · hero · field chooser · how it works ·
- * footer. The page was previously two bands on a document barely taller than
- * the viewport, which read as an unfinished page rather than as a landing page.
+ * Three bands: hero · field chooser · how it works. The header, footer and
+ * `<main>` come from the root layout, so every route gets them without having to
+ * remember.
  *
- * Still to come for P0: the field routes themselves (`/fisika`, `/kimia`,
- * `/biologi`), experiment detail, `<ExperimentFlow>` and `<ExperimentSteps>`,
- * featured experiments, Today's Challenge, Badge Corner, and seed data in
- * `content/`. The field cards' "Lihat halaman" button already points at the
- * right hrefs, so shipping those routes is the only change it needs.
+ * Still to come for P0: the experiment detail page (`/eksperimen/[slug]`),
+ * `<ExperimentFlow>` and `<ExperimentSteps>`, featured experiments, Today's
+ * Challenge, Badge Corner.
  *
  * Copy rules for anything added here (AGENTS.md §3): short sentences, one idea
  * each, Indonesian at SD level, no walls of text.
@@ -23,13 +19,9 @@ import { SiteHeader } from "@/components/site-header";
 export default function HomePage() {
   return (
     <>
-      <SiteHeader />
-      <main id="content" className="w-full flex-1">
-        <HeroSection />
-        <FieldChooser />
-        <HowItWorks />
-      </main>
-      <SiteFooter />
+      <HeroSection />
+      <FieldChooser />
+      <HowItWorks />
     </>
   );
 }

@@ -6,8 +6,9 @@ import { WebbyMascot } from "@/components/webby-mascot";
  *
  * Server component, zero client JS — a public content page is statically
  * rendered (AGENTS.md §4.5, brief §5.8). Every animation on it is CSS:
- * staggered entrances on load, and hover reactions on the two actions and on
- * Webby himself. See the "Motion" block in `globals.css`.
+ * staggered entrances on load, a slow drift on the background glows, and a
+ * reaction from every element under the cursor. See the "Hero copy reactions"
+ * block in `globals.css`.
  *
  * Deliberately narrow in scope: one headline, one line of explanation, the
  * brand line, two actions, the mascot. The field chooser is the *next* section,
@@ -50,19 +51,28 @@ export function HeroSection() {
       {/* Background texture. Decoration only — CSS gradients and a CSS dot grid,
        * so it costs zero image requests (AGENTS.md §4.4, brief §5.8).
        *
-       * The bottom fade is load-bearing: without it the dot grid and the blobs
-       * stop dead on a hard horizontal line where the section ends. The fade
-       * dissolves them into the page background instead. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+       * The fades at both ends are load-bearing: without them the dot grid and
+       * the glows stop dead on a hard line where the section meets the header
+       * and the field chooser. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+      >
         <div className="hero-grid absolute inset-0 opacity-40" />
-        <div className="blob-in absolute -left-28 -top-32 h-72 w-72 rounded-full bg-fun-purple/35 blur-3xl" />
-        <div className="blob-in absolute -right-24 top-0 h-80 w-80 rounded-full bg-curious-blue/30 blur-3xl [--reveal-delay:80ms]" />
-        <div className="blob-in absolute -bottom-20 left-1/4 h-72 w-72 rounded-full bg-discovery-yellow/45 blur-3xl [--reveal-delay:160ms]" />
+
+        {/* Glows, not blurred circles — `.hero-glow` is a radial-gradient, which
+         * is one paint instead of a 64px filter pass plus its own layer. The
+         * boxes are ~11% larger than the old `blur-3xl` circles and recentred to
+         * match, because a gradient cannot paint outside its own box.
+         *
+         * `.hero-glow` also carries the entrance and the slow drift, so these
+         * elements do NOT get `.blob-in` — two rules setting `animation` on the
+         * same element would just overwrite each other. */}
+        <div className="hero-glow absolute -left-32 -top-36 h-80 w-80 [--glow-color:var(--color-fun-purple)]" />
+        <div className="hero-glow absolute -right-32 -top-8 h-96 w-96 [--glow-color:var(--color-curious-blue)] [--glow-strength:30%] [--reveal-delay:80ms]" />
+        <div className="hero-glow absolute -bottom-24 left-1/4 h-80 w-80 [--glow-color:var(--color-discovery-yellow)] [--glow-strength:45%] [--reveal-delay:160ms]" />
+
         <div className="absolute inset-x-0 bottom-0 h-52 bg-linear-to-b from-transparent via-cloud-white/70 to-cloud-white" />
-        {/* The header is Cloud White and this band is Lab Mist, so the top edge
-         * needs the same treatment as the bottom one — otherwise the colour
-         * change is a hard line across the page. Last in the stack so it also
-         * softens the dot grid and the blobs. */}
         <div className="absolute inset-x-0 top-0 h-16 bg-linear-to-b from-cloud-white to-transparent" />
       </div>
 
@@ -78,18 +88,20 @@ export function HeroSection() {
            * and the headline itself stays light.
            *
            * `box-decoration-clone` keeps the highlight's radius and padding on
-           * both fragments when the line wraps. */}
+           * both fragments when the line wraps. It also means the span has to
+           * stay inline, which is why its hover reaction is a shadow rather than
+           * a scale — transforms do not apply to inline boxes. */}
           <h1
             id="hero-title"
-            className="reveal font-display text-4xl font-extrabold leading-[1.14] tracking-tight text-balance text-deep-charcoal sm:text-5xl lg:text-6xl [--reveal-delay:40ms]"
+            className="hero-title reveal font-display text-4xl font-extrabold leading-[1.14] tracking-tight text-balance text-deep-charcoal sm:text-5xl lg:text-6xl [--reveal-delay:40ms]"
           >
             {id.home.hero.title}{" "}
-            <span className="box-decoration-clone rounded-2xl bg-discovery-yellow px-3 py-0.5">
+            <span className="hero-title-accent box-decoration-clone rounded-2xl bg-discovery-yellow px-3 py-0.5">
               {id.home.hero.titleAccent}
             </span>
           </h1>
 
-          <p className="reveal mt-5 max-w-lg text-lg text-pretty text-deep-charcoal/85 sm:text-xl [--reveal-delay:100ms]">
+          <p className="copy-lift reveal mt-5 max-w-lg text-lg text-pretty text-deep-charcoal/85 sm:text-xl [--reveal-delay:100ms]">
             {id.home.hero.subtitle}
           </p>
 
@@ -98,12 +110,12 @@ export function HeroSection() {
            * orange is 4.3-4.7:1, which fails the 4.5:1 body-text floor on
            * orange, so the colour moves into the dots and the text stays on
            * white (AGENTS.md §4.9). */}
-          <ul className="reveal mt-6 flex w-fit max-w-full flex-wrap items-center gap-x-4 gap-y-2 rounded-full border-[3px] border-deep-charcoal bg-cloud-white px-4 py-2 text-sm font-bold text-deep-charcoal [--reveal-delay:150ms]">
+          <ul className="tagline-pill reveal mt-6 flex w-fit max-w-full flex-wrap items-center gap-x-4 gap-y-2 rounded-full border-[3px] border-deep-charcoal bg-cloud-white px-4 py-2 text-sm font-bold text-deep-charcoal [--reveal-delay:150ms]">
             {id.brand.tagline.map((word, index) => (
-              <li key={word} className="flex items-center gap-1.5">
+              <li key={word} className="tagline-item flex items-center gap-1.5">
                 <span
                   aria-hidden="true"
-                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${TAGLINE_DOTS[index]}`}
+                  className={`tagline-dot h-2.5 w-2.5 shrink-0 rounded-full ${TAGLINE_DOTS[index]}`}
                 />
                 {word}
               </li>
@@ -141,17 +153,22 @@ export function HeroSection() {
                 className="pointer-events-none absolute inset-0"
               >
                 <div className="hero-grid absolute inset-0 opacity-35" />
-                <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-fun-purple/30 blur-2xl" />
-                <div className="absolute -bottom-14 -left-10 h-44 w-44 rounded-full bg-science-green/25 blur-2xl" />
+                <div className="hero-glow absolute -right-18 -top-18 h-56 w-56 [--glow-color:var(--color-fun-purple)] [--glow-strength:30%]" />
+                <div className="hero-glow absolute -bottom-20 -left-6 h-56 w-56 [--glow-color:var(--color-science-green)] [--glow-strength:25%]" />
               </div>
 
               <div className="relative flex flex-row items-center gap-4 lg:flex-col-reverse lg:items-start">
                 <WebbyMascot
                   alt={id.home.hero.mascotAlt}
-                  className="h-auto w-32 shrink-0 animate-float sm:w-40 lg:mx-auto lg:w-full lg:max-w-[16rem]"
+                  /* `will-change-transform` promotes the SVG to its own layer.
+                   * `animate-float` is an infinite transform on a ~40-node
+                   * inline SVG; without the hint the browser can re-rasterize
+                   * the whole thing every frame instead of just moving a
+                   * texture. One element, so the layer memory is worth it. */
+                  className="will-change-transform h-auto w-32 shrink-0 animate-float sm:w-40 lg:mx-auto lg:w-full lg:max-w-[16rem]"
                 />
 
-                <p className="relative w-fit max-w-full min-w-0 rounded-2xl border-[3px] border-deep-charcoal bg-discovery-yellow px-4 py-2 text-base font-bold text-deep-charcoal shadow-playful-sm">
+                <p className="webby-bubble relative w-fit max-w-full min-w-0 rounded-2xl border-[3px] border-deep-charcoal bg-discovery-yellow px-4 py-2 text-base font-bold text-deep-charcoal shadow-playful-sm">
                   {id.home.hero.mascotGreeting}
                   <span
                     aria-hidden="true"
